@@ -1,8 +1,8 @@
 <?php
 
-namespace Emilevl\LaravelAiUsage\Commands;
+namespace BacktikCh\LaravelAiUsage\Commands;
 
-use Emilevl\LaravelAiUsage\AiUsageLog;
+use BacktikCh\LaravelAiUsage\AiUsageLog;
 use Illuminate\Console\Command;
 
 class PruneCommand extends Command

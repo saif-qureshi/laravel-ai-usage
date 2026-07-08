@@ -1,5 +1,5 @@
 {
-  "name": "emilevl/laravel-ai-usage",
+  "name": "backtik-ch/laravel-ai-usage",
   "description": "Track and log AI usage (tokens, cost, duration) for any Laravel application, with optional auto-discovery for laravel/ai SDK.",
   "type": "library",
   "license": "MIT",
@@ -18,7 +18,8 @@
     "illuminate/events": "^12.0"
   },
   "suggest": {
-    "laravel/ai": "Enable automatic logging via laravel/ai events."
+    "laravel/ai": "Enable automatic logging via laravel/ai events.",
+    "filament/filament": "Enable Filament panel integration (resource + widget)."
   },
   "require-dev": {
     "phpunit/phpunit": "^11.0",
@@ -26,18 +27,18 @@
   },
   "autoload": {
     "psr-4": {
-      "Emilevl\\LaravelAiUsage\\": "src/"
+      "BacktikCh\\LaravelAiUsage\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "Emilevl\\LaravelAiUsage\\Tests\\": "tests/"
+      "BacktikCh\\LaravelAiUsage\\Tests\\": "tests/"
     }
   },
   "extra": {
     "laravel": {
       "providers": [
-        "Emilevl\\LaravelAiUsage\\AiUsageServiceProvider"
+        "BacktikCh\\LaravelAiUsage\\AiUsageServiceProvider"
       ]
     }
   },

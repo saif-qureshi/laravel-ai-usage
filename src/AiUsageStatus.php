@@ -1,6 +1,6 @@
 <?php
 
-namespace Emilevl\LaravelAiUsage;
+namespace BacktikCh\LaravelAiUsage;
 
 enum AiUsageStatus: string
 {

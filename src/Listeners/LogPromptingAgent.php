@@ -1,9 +1,9 @@
 <?php
 
-namespace Emilevl\LaravelAiUsage\Listeners;
+namespace BacktikCh\LaravelAiUsage\Listeners;
 
-use Emilevl\LaravelAiUsage\AiUsageLog;
-use Emilevl\LaravelAiUsage\AiUsageStatus;
+use BacktikCh\LaravelAiUsage\AiUsageLog;
+use BacktikCh\LaravelAiUsage\AiUsageStatus;
 use Illuminate\Support\Facades\Log;
 
 class LogPromptingAgent

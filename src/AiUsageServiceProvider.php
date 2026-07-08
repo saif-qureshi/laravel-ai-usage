@@ -1,6 +1,6 @@
 <?php
 
-namespace Emilevl\LaravelAiUsage;
+namespace BacktikCh\LaravelAiUsage;
 
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Facades\Event;
@@ -22,12 +22,21 @@ class AiUsageServiceProvider extends ServiceProvider
             __DIR__ . '/../config/ai-usage.php' => config_path('ai-usage.php'),
         ], 'ai-usage-config');
 
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'ai-usage');
+
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
         if ($this->app->runningInConsole()) {
             $this->commands([
                 Commands\PruneCommand::class,
             ]);
+        }
+
+        if (class_exists(\Livewire\Livewire::class)) {
+            \Livewire\Livewire::component(
+                'backtik-ch.laravel-ai-usage.filament.widgets.ai-usage-summary-widget',
+                Filament\Widgets\AiUsageSummaryWidget::class
+            );
         }
 
         if ($this->autoDiscoverEnabled()) {

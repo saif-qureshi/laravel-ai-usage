@@ -1,8 +1,8 @@
 <?php
 
-namespace Emilevl\LaravelAiUsage\Facades;
+namespace BacktikCh\LaravelAiUsage\Facades;
 
-use Emilevl\LaravelAiUsage\PendingUsageLog;
+use BacktikCh\LaravelAiUsage\PendingUsageLog;
 use Illuminate\Support\Facades\Facade;
 
 /**
@@ -18,9 +18,9 @@ use Illuminate\Support\Facades\Facade;
  * @method static PendingUsageLog requestMeta(array $meta)
  * @method static PendingUsageLog responseMeta(array $meta)
  * @method static PendingUsageLog owner(\Illuminate\Database\Eloquent\Model $model)
- * @method static \Emilevl\LaravelAiUsage\AiUsageLog log(array $data = [])
+ * @method static \BacktikCh\LaravelAiUsage\AiUsageLog log(array $data = [])
  *
- * @see \Emilevl\LaravelAiUsage\PendingUsageLog
+ * @see \BacktikCh\LaravelAiUsage\PendingUsageLog
  */
 class AiUsage extends Facade
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Emilevl\LaravelAiUsage;
+namespace BacktikCh\LaravelAiUsage;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
