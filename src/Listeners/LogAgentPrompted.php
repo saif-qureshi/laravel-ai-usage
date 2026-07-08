@@ -1,0 +1,62 @@
+<?php
+
+namespace Emilevl\LaravelAiUsage\Listeners;
+
+use Emilevl\LaravelAiUsage\AiUsageLog;
+use Emilevl\LaravelAiUsage\AiUsageStatus;
+use Illuminate\Support\Facades\Log;
+use Laravel\Ai\Events\AgentPrompted;
+use Laravel\Ai\Responses\AgentResponse;
+
+class LogAgentPrompted
+{
+    /**
+     * Update the AI usage record with response data when the agent completes.
+     */
+    public function handle(AgentPrompted $event): void
+    {
+        try {
+            /** @var AgentResponse $response */
+            $response = $event->response;
+            $usage = $response->usage;
+            $meta = $response->meta;
+
+            $record = AiUsageLog::query()
+                ->where('request_meta->invocation_id', $event->invocationId)
+                ->first();
+
+            $data = [
+                'driver' => $meta->provider,
+                'model' => $meta->model,
+                'prompt_tokens' => $usage->promptTokens,
+                'completion_tokens' => $usage->completionTokens,
+                'cache_write_tokens' => $usage->cacheWriteInputTokens,
+                'cache_read_tokens' => $usage->cacheReadInputTokens,
+                'reasoning_tokens' => $usage->reasoningTokens,
+                'status' => AiUsageStatus::Completed->value,
+            ];
+
+            if (config('ai-usage.log_response_text', true)) {
+                $data['response_text'] = $response->text;
+                $maxLength = config('ai-usage.max_text_length');
+                if ($maxLength !== null) {
+                    $data['response_text'] = mb_substr($data['response_text'], 0, $maxLength);
+                }
+            }
+
+            if ($record) {
+                $record->update($data);
+            } else {
+                // No pending record found — create one directly
+                $data['label'] = AiUsageLog::labelFromClass($event->prompt->agent::class);
+                $data['agent_class'] = $event->prompt->agent::class;
+
+                $record = AiUsageLog::query()->create($data);
+            }
+        } catch (\Throwable $e) {
+            Log::error('[laravel-ai-usage] Failed to log agent prompted.', [
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+}
