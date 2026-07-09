@@ -22,6 +22,7 @@ class AiUsageLog extends Model
         'duration_ms',
         'status',
         'prompt_text',
+        'user_prompt_text',
         'response_text',
         'request_meta',
         'response_meta',

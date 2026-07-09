@@ -22,6 +22,17 @@ php artisan vendor:publish --tag=ai-usage-config
 php artisan migrate
 ```
 
+## How It Works
+
+This package hooks into the `laravel/ai` SDK lifecycle via two events:
+
+1. **`PromptingAgent`** — fired when an agent starts. The package creates a **pending** record with the agent class, label, and an invocation ID.
+2. **`AgentPrompted`** — fired when the agent completes. The package locates the pending record, fills in token counts, duration, model/driver info, and snapshots the token prices from your config.
+
+The result is a complete, immutable log of every AI call — no manual code required if you use `laravel/ai`.
+
+If you're not using `laravel/ai`, you can log calls manually via the fluent `AiUsage` facade (see [Manual logging](#manual-logging)).
+
 ## Configuration
 
 The config file (`config/ai-usage.php`) exposes the following options:
@@ -67,6 +78,15 @@ Supported price keys: `prompt`, `completion`, `cache_read`, `cache_write`, `reas
 The package ships with indicative prices for common OpenAI, Anthropic and Gemini models. Always verify against your provider's current pricing page.
 
 ## Usage
+
+> [!TIP]
+> **Using `laravel/ai`? You're already done.** If auto-discovery is enabled (default) and `laravel/ai` is installed, every AI agent call is logged automatically — no code needed. The sections below are for **manual logging** or custom integrations.
+
+### Auto-discovery mode
+
+When `auto_discover` is `true` (default) and `laravel/ai` is installed, the package automatically listens for `Laravel\Ai\Events\PromptingAgent` and `Laravel\Ai\Events\AgentPrompted`. A pending record is created when the agent starts, then updated with tokens, duration, model info, and cost data when the agent finishes.
+
+To disable auto-discovery, set `auto_discover` to `false` in `config/ai-usage.php`.
 
 ### Manual logging
 
@@ -117,24 +137,24 @@ AiUsage::driver('openai')
 
 If `costPrices()` is not called, prices are resolved automatically from `config('ai-usage.prices')`.
 
-### Reading the estimated cost
+### How cost estimation works
 
-The `AiUsageLog` model exposes an `estimated_cost` computed attribute (float, in USD) derived from the snapshotted per-token prices:
+Token prices (USD per 1 million tokens) are **snapshotted from your config at log time** and stored alongside each record. This means historical cost data remains accurate even when you update prices later.
+
+The `AiUsageLog` model exposes an `estimated_cost` computed attribute derived from the stored token counts and prices:
 
 ```php
 $log = AiUsageLog::find(1);
 echo $log->estimated_cost; // e.g. 0.003450
 ```
 
-Returns `null` when no price data is available.
+Returns `null` when no price data is available (i.e., the model isn't listed in your `prices` config).
+
+To add a new model, simply add its prices to `config('ai-usage.prices.{driver}.{model}')`. Supported price keys: `prompt`, `completion`, `cache_read`, `cache_write`, `reasoning`.
 
 ### Status values
 
 Logs use the `AiUsageStatus` enum: `pending`, `processing`, `completed`, `failed`.
-
-### Auto-discovery mode
-
-When `auto_discover` is `true` (default) and `laravel/ai` is installed, the package automatically listens for `Laravel\Ai\Events\PromptingAgent` and `Laravel\Ai\Events\AgentPrompted` — no extra code needed.
 
 ## Filament integration
 

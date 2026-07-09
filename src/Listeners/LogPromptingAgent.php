@@ -29,10 +29,25 @@ class LogPromptingAgent
                 ],
             ];
 
+            $maxLength = config('ai-usage.max_text_length');
+
             if (config('ai-usage.log_system_prompt', false)
                 && is_object($prompt)
-                && method_exists($prompt, 'toArray')) {
-                $data['prompt_text'] = json_encode($prompt->toArray());
+                && property_exists($prompt, 'agent')
+                && method_exists($prompt->agent, 'instructions')) {
+                $instructions = (string) $prompt->agent->instructions();
+                $data['prompt_text'] = $maxLength !== null
+                    ? mb_substr($instructions, 0, $maxLength)
+                    : $instructions;
+            }
+
+            if (config('ai-usage.log_user_prompt', false)
+                && is_object($prompt)
+                && property_exists($prompt, 'prompt')) {
+                $userPrompt = (string) $prompt->prompt;
+                $data['user_prompt_text'] = $maxLength !== null
+                    ? mb_substr($userPrompt, 0, $maxLength)
+                    : $userPrompt;
             }
 
             AiUsageLog::query()->create($data);

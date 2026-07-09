@@ -83,9 +83,17 @@ class AiUsageResource extends Resource
                     ->columns(3)
                     ->footerActions([])
                     ->description('Prices snapshotted at log time from config. null = price not configured.'),
-                Section::make('Prompt')
+                Section::make('System Prompt')
                     ->schema([
                         TextEntry::make('prompt_text')
+                            ->label('')
+                            ->markdown()
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsed(),
+                Section::make('User Prompt')
+                    ->schema([
+                        TextEntry::make('user_prompt_text')
                             ->label('')
                             ->markdown()
                             ->columnSpanFull(),

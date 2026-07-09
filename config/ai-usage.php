@@ -37,6 +37,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Log User Prompt
+    |--------------------------------------------------------------------------
+    |
+    | When true, the user's prompt message is stored in user_prompt_text.
+    | Set to false to avoid storing potentially sensitive user input.
+    |
+    */
+    'log_user_prompt' => false,
+
+    /*
+    |--------------------------------------------------------------------------
     | Log Response Text
     |--------------------------------------------------------------------------
     |
