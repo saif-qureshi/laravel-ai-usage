@@ -29,6 +29,7 @@ class AiUsageServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 Commands\PruneCommand::class,
+                Commands\MarkStaleAsFailedCommand::class,
             ]);
         }
 

@@ -44,6 +44,7 @@ The config file (`config/ai-usage.php`) exposes the following options:
 | `log_system_prompt` | `false` | Store system prompts in the log |
 | `log_response_text` | `true` | Store AI response bodies |
 | `max_text_length` | `10_000` | Truncate prompt/response text (chars); `null` disables |
+| `stale_timeout_minutes` | `60` | Minutes before a `processing` record is considered stale |
 | `auto_discover` | `true` | Auto-listen to `laravel/ai` events |
 | `prices` | *(see below)* | Token prices (USD / 1 M tokens) per driver & model |
 
@@ -195,6 +196,27 @@ protected function getHeaderWidgets(): array
 
 ```bash
 php artisan ai-usage:prune --days=90
+```
+
+### Mark stale records as failed
+
+If an AI call throws an exception, the `laravel/ai` SDK never fires `AgentPrompted`, so the record stays in `processing` status indefinitely. Run this command on a schedule to mark those stale records as `failed`:
+
+```bash
+php artisan ai-usage:mark-stale-failed
+```
+
+The timeout is controlled by `stale_timeout_minutes` in your config (default: `60`). You can also override it per-call:
+
+```bash
+php artisan ai-usage:mark-stale-failed --minutes=30
+```
+
+Add both commands to your scheduler in `routes/console.php`:
+
+```php
+Schedule::command('ai-usage:mark-stale-failed')->hourly();
+Schedule::command('ai-usage:prune')->daily();
 ```
 
 ## Testing

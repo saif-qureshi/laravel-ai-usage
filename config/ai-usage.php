@@ -70,6 +70,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Stale Record Timeout
+    |--------------------------------------------------------------------------
+    |
+    | Processing records older than this many minutes are considered stale
+    | (the AI call likely failed without firing a completion event).
+    | Run `ai-usage:mark-stale-failed` on a schedule to clean these up.
+    |
+    */
+    'stale_timeout_minutes' => 30,
+
+    /*
+    |--------------------------------------------------------------------------
     | Auto-Discovery Mode
     |--------------------------------------------------------------------------
     |
