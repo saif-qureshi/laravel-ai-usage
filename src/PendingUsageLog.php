@@ -108,9 +108,37 @@ class PendingUsageLog
         return $this;
     }
 
+    public function costPrices(array $prices): static
+    {
+        $this->data['prompt_cost_per_million'] = $prices['prompt'] ?? null;
+        $this->data['completion_cost_per_million'] = $prices['completion'] ?? null;
+        $this->data['cache_write_cost_per_million'] = $prices['cache_write'] ?? null;
+        $this->data['cache_read_cost_per_million'] = $prices['cache_read'] ?? null;
+        $this->data['reasoning_cost_per_million'] = $prices['reasoning'] ?? null;
+
+        return $this;
+    }
+
     public function log(array $data = []): AiUsageLog
     {
         $merged = array_merge($this->data, $data);
+
+        // Auto-snapshot prices from config if not already explicitly set
+        if (! array_key_exists('prompt_cost_per_million', $merged)) {
+            $driver = $merged['driver'] ?? null;
+            $model = $merged['model'] ?? null;
+
+            if ($driver && $model) {
+                $prices = config("ai-usage.prices.{$driver}.{$model}");
+                if (is_array($prices)) {
+                    $merged['prompt_cost_per_million'] = $prices['prompt'] ?? null;
+                    $merged['completion_cost_per_million'] = $prices['completion'] ?? null;
+                    $merged['cache_write_cost_per_million'] = $prices['cache_write'] ?? null;
+                    $merged['cache_read_cost_per_million'] = $prices['cache_read'] ?? null;
+                    $merged['reasoning_cost_per_million'] = $prices['reasoning'] ?? null;
+                }
+            }
+        }
 
         return $this->persist($merged);
     }

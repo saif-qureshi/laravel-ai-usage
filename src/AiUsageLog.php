@@ -2,6 +2,7 @@
 
 namespace BacktikCh\LaravelAiUsage;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Str;
@@ -26,6 +27,11 @@ class AiUsageLog extends Model
         'response_meta',
         'owner_type',
         'owner_id',
+        'prompt_cost_per_million',
+        'completion_cost_per_million',
+        'cache_write_cost_per_million',
+        'cache_read_cost_per_million',
+        'reasoning_cost_per_million',
     ];
 
     protected function casts(): array
@@ -40,6 +46,11 @@ class AiUsageLog extends Model
             'cache_read_tokens' => 'int',
             'reasoning_tokens' => 'int',
             'duration_ms' => 'int',
+            'prompt_cost_per_million' => 'float',
+            'completion_cost_per_million' => 'float',
+            'cache_write_cost_per_million' => 'float',
+            'cache_read_cost_per_million' => 'float',
+            'reasoning_cost_per_million' => 'float',
         ];
     }
 
@@ -53,6 +64,34 @@ class AiUsageLog extends Model
     public function owner(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    protected function estimatedCost(): Attribute
+    {
+        return Attribute::make(
+            get: function (): ?float {
+                $cost = 0.0;
+                $hasPrices = false;
+
+                $pairs = [
+                    ['prompt_tokens', 'prompt_cost_per_million'],
+                    ['completion_tokens', 'completion_cost_per_million'],
+                    ['cache_write_tokens', 'cache_write_cost_per_million'],
+                    ['cache_read_tokens', 'cache_read_cost_per_million'],
+                    ['reasoning_tokens', 'reasoning_cost_per_million'],
+                ];
+
+                foreach ($pairs as [$tokenField, $priceField]) {
+                    $price = $this->getAttribute($priceField);
+                    if ($price !== null) {
+                        $hasPrices = true;
+                        $cost += ($this->getAttribute($tokenField) ?? 0) * $price / 1_000_000;
+                    }
+                }
+
+                return $hasPrices ? round($cost, 8) : null;
+            }
+        );
     }
 
     public function totalTokens(): int

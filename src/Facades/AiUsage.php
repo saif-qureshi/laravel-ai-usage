@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static PendingUsageLog requestMeta(array $meta)
  * @method static PendingUsageLog responseMeta(array $meta)
  * @method static PendingUsageLog owner(\Illuminate\Database\Eloquent\Model $model)
+ * @method static PendingUsageLog costPrices(array $prices)
  * @method static \BacktikCh\LaravelAiUsage\AiUsageLog log(array $data = [])
  *
  * @see \BacktikCh\LaravelAiUsage\PendingUsageLog

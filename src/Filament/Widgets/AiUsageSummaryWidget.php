@@ -32,18 +32,42 @@ class AiUsageSummaryWidget extends Widget
         $this->dispatch('refreshSummary');
     }
 
+    private function costExpr(): string
+    {
+        return 'COALESCE(prompt_tokens * prompt_cost_per_million, 0)'
+            . ' + COALESCE(completion_tokens * completion_cost_per_million, 0)'
+            . ' + COALESCE(cache_write_tokens * cache_write_cost_per_million, 0)'
+            . ' + COALESCE(cache_read_tokens * cache_read_cost_per_million, 0)'
+            . ' + COALESCE(reasoning_tokens * reasoning_cost_per_million, 0)';
+    }
+
+    public function formatCost(?float $cost): string
+    {
+        if ($cost === null || $cost == 0.0) {
+            return '—';
+        }
+
+        return '$' . number_format($cost, $cost < 0.01 ? 6 : 4);
+    }
+
     public function getStatsData(): array
     {
         $query = $this->applyPeriodFilter(AiUsageLog::query());
 
+        $totalCalls = (clone $query)->count();
+        $totalTokens = (clone $query)->get()->sum(fn ($log) => $log->totalTokens());
+
+        $costRow = (clone $query)
+            ->selectRaw("SUM({$this->costExpr()}) / 1000000 as total_cost")
+            ->first();
+
         return [
-            'totalCalls' => (clone $query)->count(),
-            'totalTokens' => (clone $query)->get()->sum(fn ($log) => $log->totalTokens()),
-            'uniqueDrivers' => (clone $query)->whereNotNull('driver')->distinct('driver')->count('driver'),
-            'uniqueModels' => (clone $query)->whereNotNull('model')->distinct('model')->count('model'),
-            'avgTokensPerCall' => $query->count() > 0
-                ? (int) round((clone $query)->get()->sum(fn ($log) => $log->totalTokens()) / $query->count())
-                : 0,
+            'totalCalls'      => $totalCalls,
+            'totalTokens'     => $totalTokens,
+            'estimatedCost'   => $costRow ? (float) $costRow->total_cost : null,
+            'uniqueDrivers'   => (clone $query)->whereNotNull('driver')->distinct('driver')->count('driver'),
+            'uniqueModels'    => (clone $query)->whereNotNull('model')->distinct('model')->count('model'),
+            'avgTokensPerCall' => $totalCalls > 0 ? (int) round($totalTokens / $totalCalls) : 0,
         ];
     }
 
@@ -58,6 +82,7 @@ class AiUsageSummaryWidget extends Widget
             ->selectRaw('SUM(prompt_tokens + completion_tokens + COALESCE(cache_write_tokens,0) + COALESCE(cache_read_tokens,0) + COALESCE(reasoning_tokens,0)) as total_tokens')
             ->selectRaw('COUNT(*) as total_calls')
             ->selectRaw('AVG(duration_ms) as avg_duration_ms')
+            ->selectRaw("SUM({$this->costExpr()}) / 1000000 as estimated_cost")
             ->whereNotNull('driver')
             ->groupBy('driver')
             ->orderByDesc('total_tokens')
@@ -76,6 +101,7 @@ class AiUsageSummaryWidget extends Widget
             ->selectRaw('SUM(prompt_tokens + completion_tokens + COALESCE(cache_write_tokens,0) + COALESCE(cache_read_tokens,0) + COALESCE(reasoning_tokens,0)) as total_tokens')
             ->selectRaw('COUNT(*) as total_calls')
             ->selectRaw('AVG(duration_ms) as avg_duration_ms')
+            ->selectRaw("SUM({$this->costExpr()}) / 1000000 as estimated_cost")
             ->whereNotNull('model')
             ->groupBy('model')
             ->orderByDesc('total_tokens')

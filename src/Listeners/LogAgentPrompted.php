@@ -36,6 +36,16 @@ class LogAgentPrompted
                 'status' => AiUsageStatus::Completed->value,
             ];
 
+            // Snapshot prices from config at log time
+            $prices = config("ai-usage.prices.{$meta->provider}.{$meta->model}");
+            if (is_array($prices)) {
+                $data['prompt_cost_per_million']      = $prices['prompt'] ?? null;
+                $data['completion_cost_per_million']  = $prices['completion'] ?? null;
+                $data['cache_write_cost_per_million'] = $prices['cache_write'] ?? null;
+                $data['cache_read_cost_per_million']  = $prices['cache_read'] ?? null;
+                $data['reasoning_cost_per_million']   = $prices['reasoning'] ?? null;
+            }
+
             if (config('ai-usage.log_response_text', true)) {
                 $data['response_text'] = $response->text;
                 $maxLength = config('ai-usage.max_text_length');

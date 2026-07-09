@@ -21,6 +21,7 @@
             'Avg Tokens/Call' => number_format($stats['avgTokensPerCall']),
             'Unique Drivers'  => $stats['uniqueDrivers'],
             'Unique Models'   => $stats['uniqueModels'],
+            'Est. Cost (USD)' => $this->formatCost($stats['estimatedCost']),
         ];
     @endphp
 
@@ -64,6 +65,7 @@
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Prompt Tokens</th>
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Completion Tokens</th>
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Total Tokens</th>
+                            <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Est. Cost</th>
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Avg Duration</th>
                         </tr>
                     </thead>
@@ -75,18 +77,18 @@
                                 <td class="fi-ta-cell px-3 py-2" style="text-align:right;">{{ number_format($row['total_prompt_tokens']) }}</td>
                                 <td class="fi-ta-cell px-3 py-2" style="text-align:right;">{{ number_format($row['total_completion_tokens']) }}</td>
                                 <td class="fi-ta-cell px-3 py-2" style="text-align:right;font-weight:700;">{{ number_format($row['total_tokens']) }}</td>
+                                <td class="fi-ta-cell px-3 py-2" style="text-align:right;">{{ $this->formatCost(isset($row['estimated_cost']) ? (float) $row['estimated_cost'] : null) }}</td>
                                 <td class="fi-ta-cell px-3 py-2" style="text-align:right;">{{ $row['avg_duration_ms'] ? (int) $row['avg_duration_ms'] . ' ms' : '—' }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="fi-ta-cell px-3 py-6" style="text-align:center;opacity:0.5;">No data for this period.</td>
+                                <td colspan="7" class="fi-ta-cell px-3 py-6" style="text-align:center;opacity:0.5;">No data for this period.</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
 
-            {{-- By Model --}}
             <div x-show="activeTab === 'model'" x-cloak>
                 <table class="fi-ta-table" style="width:100%;">
                     <thead>
@@ -96,6 +98,7 @@
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Prompt Tokens</th>
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Completion Tokens</th>
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Total Tokens</th>
+                            <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Est. Cost</th>
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Avg Duration</th>
                         </tr>
                     </thead>
@@ -107,11 +110,12 @@
                                 <td class="fi-ta-cell px-3 py-2" style="text-align:right;">{{ number_format($row['total_prompt_tokens']) }}</td>
                                 <td class="fi-ta-cell px-3 py-2" style="text-align:right;">{{ number_format($row['total_completion_tokens']) }}</td>
                                 <td class="fi-ta-cell px-3 py-2" style="text-align:right;font-weight:700;">{{ number_format($row['total_tokens']) }}</td>
+                                <td class="fi-ta-cell px-3 py-2" style="text-align:right;">{{ $this->formatCost(isset($row['estimated_cost']) ? (float) $row['estimated_cost'] : null) }}</td>
                                 <td class="fi-ta-cell px-3 py-2" style="text-align:right;">{{ $row['avg_duration_ms'] ? (int) $row['avg_duration_ms'] . ' ms' : '—' }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="fi-ta-cell px-3 py-6" style="text-align:center;opacity:0.5;">No data for this period.</td>
+                                <td colspan="7" class="fi-ta-cell px-3 py-6" style="text-align:center;opacity:0.5;">No data for this period.</td>
                             </tr>
                         @endforelse
                     </tbody>

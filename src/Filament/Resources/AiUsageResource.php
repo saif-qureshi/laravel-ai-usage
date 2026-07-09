@@ -70,8 +70,19 @@ class AiUsageResource extends Resource
                         TextEntry::make('cache_read_tokens')
                             ->label('Cache Read Tokens'),
                         TextEntry::make('reasoning_tokens'),
+                        TextEntry::make('estimated_cost')
+                            ->label('Estimated Cost (USD)')
+                            ->formatStateUsing(function (mixed $state): string {
+                                if ($state === null) {
+                                    return '— (no price configured)';
+                                }
+                                return '$' . number_format((float) $state, $state < 0.01 ? 6 : 4);
+                            })
+                            ->columnSpanFull(),
                     ])
-                    ->columns(3),
+                    ->columns(3)
+                    ->footerActions([])
+                    ->description('Prices snapshotted at log time from config. null = price not configured.'),
                 Section::make('Prompt')
                     ->schema([
                         TextEntry::make('prompt_text')
