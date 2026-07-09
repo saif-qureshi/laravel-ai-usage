@@ -109,6 +109,44 @@ class AiUsageSummaryWidget extends Widget
             ->toArray();
     }
 
+    public function getTokensByLabel(): array
+    {
+        $query = $this->applyPeriodFilter(AiUsageLog::query());
+
+        return (clone $query)
+            ->select('label')
+            ->selectRaw('SUM(prompt_tokens) as total_prompt_tokens')
+            ->selectRaw('SUM(completion_tokens) as total_completion_tokens')
+            ->selectRaw('SUM(prompt_tokens + completion_tokens + COALESCE(cache_write_tokens,0) + COALESCE(cache_read_tokens,0) + COALESCE(reasoning_tokens,0)) as total_tokens')
+            ->selectRaw('COUNT(*) as total_calls')
+            ->selectRaw('AVG(duration_ms) as avg_duration_ms')
+            ->selectRaw("SUM({$this->costExpr()}) / 1000000 as estimated_cost")
+            ->whereNotNull('label')
+            ->groupBy('label')
+            ->orderByDesc('total_tokens')
+            ->get()
+            ->toArray();
+    }
+
+    public function getTokensByAgent(): array
+    {
+        $query = $this->applyPeriodFilter(AiUsageLog::query());
+
+        return (clone $query)
+            ->select('agent_class')
+            ->selectRaw('SUM(prompt_tokens) as total_prompt_tokens')
+            ->selectRaw('SUM(completion_tokens) as total_completion_tokens')
+            ->selectRaw('SUM(prompt_tokens + completion_tokens + COALESCE(cache_write_tokens,0) + COALESCE(cache_read_tokens,0) + COALESCE(reasoning_tokens,0)) as total_tokens')
+            ->selectRaw('COUNT(*) as total_calls')
+            ->selectRaw('AVG(duration_ms) as avg_duration_ms')
+            ->selectRaw("SUM({$this->costExpr()}) / 1000000 as estimated_cost")
+            ->whereNotNull('agent_class')
+            ->groupBy('agent_class')
+            ->orderByDesc('total_tokens')
+            ->get()
+            ->toArray();
+    }
+
     protected function applyPeriodFilter($query)
     {
         return match ($this->period) {
