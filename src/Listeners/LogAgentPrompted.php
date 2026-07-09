@@ -55,6 +55,7 @@ class LogAgentPrompted
             }
 
             if ($record) {
+                $data['duration_ms'] = (int) $record->created_at->diffInMilliseconds(now());
                 $record->update($data);
             } else {
                 // No pending record found — create one directly

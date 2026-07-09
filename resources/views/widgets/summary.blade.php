@@ -78,7 +78,7 @@
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ number_format($row['total_completion_tokens']) }}</td>
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;font-weight:700;">{{ number_format($row['total_tokens']) }}</td>
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ $this->formatCost(isset($row['estimated_cost']) ? (float) $row['estimated_cost'] : null) }}</td>
-                                <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ $row['avg_duration_ms'] ? (int) $row['avg_duration_ms'] . ' ms' : '—' }}</td>
+                                <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ $row['avg_duration_ms'] ? number_format($row['avg_duration_ms'] / 1000, 2) . ' s' : '—' }}</td>
                             </tr>
                         @empty
                             <tr>
@@ -111,7 +111,7 @@
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ number_format($row['total_completion_tokens']) }}</td>
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;font-weight:700;">{{ number_format($row['total_tokens']) }}</td>
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ $this->formatCost(isset($row['estimated_cost']) ? (float) $row['estimated_cost'] : null) }}</td>
-                                <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ $row['avg_duration_ms'] ? (int) $row['avg_duration_ms'] . ' ms' : '—' }}</td>
+                                <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ $row['avg_duration_ms'] ? number_format($row['avg_duration_ms'] / 1000, 2) . ' s' : '—' }}</td>
                             </tr>
                         @empty
                             <tr>

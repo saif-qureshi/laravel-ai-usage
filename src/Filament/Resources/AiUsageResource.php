@@ -55,7 +55,7 @@ class AiUsageResource extends Resource
                             }),
                         TextEntry::make('duration_ms')
                             ->label('Duration')
-                            ->formatStateUsing(fn (?int $state) => $state ? "{$state} ms" : '-'),
+                            ->formatStateUsing(fn (?int $state) => $state ? number_format($state / 1000, 2) . ' s' : '-'),
                         TextEntry::make('created_at')
                             ->label('Created at')
                             ->dateTime(),
@@ -154,7 +154,7 @@ class AiUsageResource extends Resource
                     ->sortable(),
                 TextColumn::make('duration_ms')
                     ->label('Duration')
-                    ->formatStateUsing(fn (?int $state) => $state ? "{$state} ms" : '-')
+                    ->formatStateUsing(fn (?int $state) => $state ? number_format($state / 1000, 2) . ' s' : '-')
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('status')
