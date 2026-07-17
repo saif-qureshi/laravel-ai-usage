@@ -16,6 +16,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
 
 class AiUsageResource extends Resource
@@ -34,6 +35,11 @@ class AiUsageResource extends Resource
 
     protected static ?int $navigationSort = 90;
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with('owner');
+    }
+
     public static function infolist(Schema $schema): Schema
     {
         return $schema
@@ -45,6 +51,9 @@ class AiUsageResource extends Resource
                         TextEntry::make('model'),
                         TextEntry::make('agent_class')
                             ->label('Agent'),
+                        TextEntry::make('owner_id')
+                            ->label('Owner')
+                            ->getStateUsing(fn (AiUsageLog $record): string => static::ownerLabel($record)),
                         TextEntry::make('status')
                             ->badge()
                             ->color(fn (AiUsageStatus $state) => match ($state) {
@@ -154,6 +163,10 @@ class AiUsageResource extends Resource
                     ->formatStateUsing(fn (?string $state) => $state ? class_basename($state) : '-')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('owner_id')
+                    ->label('Owner')
+                    ->getStateUsing(fn (AiUsageLog $record): string => static::ownerLabel($record))
+                    ->toggleable(),
                 TextColumn::make('prompt_tokens')
                     ->label('Prompt Tok.')
                     ->sortable(),
@@ -204,5 +217,31 @@ class AiUsageResource extends Resource
             'index' => ListAiUsage::route('/'),
             'view' => ViewAiUsage::route('/{record}'),
         ];
+    }
+
+    private static function ownerLabel(AiUsageLog $record): string
+    {
+        $owner = $record->owner;
+
+        if ($owner) {
+            $name = $owner->getAttribute('name');
+            $email = $owner->getAttribute('email');
+
+            if (filled($name) && filled($email)) {
+                return "{$name} <{$email}>";
+            }
+
+            if (filled($name) || filled($email)) {
+                return (string) ($name ?: $email);
+            }
+
+            return class_basename($owner::class) . ' #' . $owner->getKey();
+        }
+
+        if ($record->owner_type && $record->owner_id !== null) {
+            return class_basename($record->owner_type) . ' #' . $record->owner_id;
+        }
+
+        return '-';
     }
 }

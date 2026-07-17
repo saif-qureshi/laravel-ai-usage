@@ -99,7 +99,7 @@ To associate each automatically discovered log with the authenticated user, enab
 'attach_authenticated_user' => true,
 ```
 
-The package uses the user from Laravel's default authentication guard. Guests and contexts without authentication, such as jobs and commands, are logged without an owner. If the authenticated user cannot be resolved, is not an Eloquent model, or has no primary key, the package writes a warning and creates the usage log without an owner.
+The package uses the user from Laravel's default authentication guard. Numeric IDs, UUIDs, and ULIDs are supported. Guests and contexts without authentication, such as jobs and commands, are logged without an owner. If the authenticated user cannot be resolved, is not an Eloquent model, or has no primary key, the package writes a warning and creates the usage log without an owner.
 
 ### Manual logging
 
