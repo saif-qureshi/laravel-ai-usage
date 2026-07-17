@@ -94,6 +94,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Attach Authenticated User
+    |--------------------------------------------------------------------------
+    |
+    | When true, automatically discovered AI usage logs are associated with
+    | the authenticated user from Laravel's default guard. Guests and contexts
+    | without authentication (such as jobs or commands) are logged without an
+    | owner.
+    |
+    */
+    'attach_authenticated_user' => false,
+
+    /*
+    |--------------------------------------------------------------------------
     | Token Prices (USD per 1 million tokens)
     |--------------------------------------------------------------------------
     |

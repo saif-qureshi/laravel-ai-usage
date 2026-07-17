@@ -4,6 +4,7 @@ namespace BacktikCh\LaravelAiUsage\Listeners;
 
 use BacktikCh\LaravelAiUsage\AiUsageLog;
 use BacktikCh\LaravelAiUsage\AiUsageStatus;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
 class LogPromptingAgent
@@ -28,6 +29,10 @@ class LogPromptingAgent
                     'invocation_id' => $event->invocationId,
                 ],
             ];
+
+            if ($ownerAttributes = $this->resolveAuthenticatedOwnerAttributes()) {
+                $data = array_merge($data, $ownerAttributes);
+            }
 
             $maxLength = config('ai-usage.max_text_length');
 
@@ -55,6 +60,66 @@ class LogPromptingAgent
             Log::error('[laravel-ai-usage] Failed to log prompting agent.', [
                 'error' => $e->getMessage(),
             ]);
+        }
+    }
+
+    /**
+     * Resolve the authenticated user as the optional owner for an automatically discovered usage log.
+     */
+    private function resolveAuthenticatedOwnerAttributes(): ?array
+    {
+        if (! config('ai-usage.attach_authenticated_user', false) || ! function_exists('auth')) {
+            return null;
+        }
+
+        try {
+            $owner = auth()->user();
+
+            if ($owner === null) {
+                return null;
+            }
+
+            if (! $owner instanceof Model) {
+                $this->warnAuthenticatedOwnerFailure('The authenticated user is not an Eloquent model.', [
+                    'returned_type' => get_debug_type($owner),
+                ]);
+
+                return null;
+            }
+
+            if ($owner->getKey() === null) {
+                $this->warnAuthenticatedOwnerFailure('The authenticated user does not have a primary key.', [
+                    'owner_class' => $owner::class,
+                ]);
+
+                return null;
+            }
+
+            return [
+                'owner_type' => $owner->getMorphClass(),
+                'owner_id' => $owner->getKey(),
+            ];
+        } catch (\Throwable $e) {
+            $this->warnAuthenticatedOwnerFailure('The authenticated user could not be resolved.', [
+                'exception' => $e::class,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
+     * Write an authenticated owner warning without risking the usage log itself.
+     */
+    private function warnAuthenticatedOwnerFailure(string $reason, array $context = []): void
+    {
+        try {
+            Log::warning('[laravel-ai-usage] Failed to resolve authenticated owner; logging usage without an owner.', array_merge([
+                'reason' => $reason,
+            ], $context));
+        } catch (\Throwable) {
+            // Logging failures must not prevent the usage log from being created.
         }
     }
 }

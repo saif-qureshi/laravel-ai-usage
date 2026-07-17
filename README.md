@@ -46,6 +46,7 @@ The config file (`config/ai-usage.php`) exposes the following options:
 | `max_text_length` | `10_000` | Truncate prompt/response text (chars); `null` disables |
 | `stale_timeout_minutes` | `60` | Minutes before a `processing` record is considered stale |
 | `auto_discover` | `true` | Auto-listen to `laravel/ai` events |
+| `attach_authenticated_user` | `false` | Associate auto-discovered logs with the authenticated user |
 | `prices` | *(see below)* | Token prices (USD / 1 M tokens) per driver & model |
 
 ### Token prices
@@ -88,6 +89,17 @@ The package ships with indicative prices for common OpenAI, Anthropic and Gemini
 When `auto_discover` is `true` (default) and `laravel/ai` is installed, the package automatically listens for `Laravel\Ai\Events\PromptingAgent` and `Laravel\Ai\Events\AgentPrompted`. A pending record is created when the agent starts, then updated with tokens, duration, model info, and cost data when the agent finishes.
 
 To disable auto-discovery, set `auto_discover` to `false` in `config/ai-usage.php`.
+
+### Attach an owner automatically
+
+To associate each automatically discovered log with the authenticated user, enable the following option:
+
+```php
+// config/ai-usage.php
+'attach_authenticated_user' => true,
+```
+
+The package uses the user from Laravel's default authentication guard. Guests and contexts without authentication, such as jobs and commands, are logged without an owner. If the authenticated user cannot be resolved, is not an Eloquent model, or has no primary key, the package writes a warning and creates the usage log without an owner.
 
 ### Manual logging
 
