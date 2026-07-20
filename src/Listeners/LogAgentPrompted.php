@@ -37,7 +37,7 @@ class LogAgentPrompted
             ];
 
             // Snapshot prices from config at log time
-            $prices = config("ai-usage.prices.{$meta->provider}.{$meta->model}");
+            $prices = config('ai-usage.prices', [])[$meta->provider][$meta->model] ?? null;
             if (is_array($prices)) {
                 $data['prompt_cost_per_million']      = $prices['prompt'] ?? null;
                 $data['completion_cost_per_million']  = $prices['completion'] ?? null;

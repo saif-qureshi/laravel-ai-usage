@@ -129,7 +129,7 @@ class PendingUsageLog
             $model = $merged['model'] ?? null;
 
             if ($driver && $model) {
-                $prices = config("ai-usage.prices.{$driver}.{$model}");
+                $prices = config('ai-usage.prices', [])[$driver][$model] ?? null;
                 if (is_array($prices)) {
                     $merged['prompt_cost_per_million'] = $prices['prompt'] ?? null;
                     $merged['completion_cost_per_million'] = $prices['completion'] ?? null;
