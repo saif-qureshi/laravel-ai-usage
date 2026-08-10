@@ -47,6 +47,7 @@ The config file (`config/ai-usage.php`) exposes the following options:
 | `stale_timeout_minutes` | `60` | Minutes before a `processing` record is considered stale |
 | `auto_discover` | `true` | Auto-listen to `laravel/ai` events |
 | `attach_authenticated_user` | `false` | Associate auto-discovered logs with the authenticated user |
+| `show_costs` | `true` | Show estimated costs and pricing details in the Filament UI |
 | `prices` | *(see below)* | Token prices (USD / 1 M tokens) per driver & model |
 
 ### Token prices
@@ -78,6 +79,17 @@ Prices are snapshotted into each log row at write time so historical cost estima
 Supported price keys: `prompt`, `completion`, `cache_read`, `cache_write`, `reasoning`.
 
 The package ships with indicative prices for common OpenAI, Anthropic and Gemini models. Always verify against your provider's current pricing page.
+
+### Hide pricing in Filament
+
+To hide estimated costs and price-related details from the package's Filament resource and summary widget, set:
+
+```php
+// config/ai-usage.php
+'show_costs' => false,
+```
+
+This only affects the UI. The package continues to snapshot configured or manually supplied prices into usage logs, so historical cost data remains available if you later re-enable the setting.
 
 ## Usage
 

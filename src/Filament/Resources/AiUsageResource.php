@@ -42,6 +42,29 @@ class AiUsageResource extends Resource
 
     public static function infolist(Schema $schema): Schema
     {
+        $tokenUsage = [
+            TextEntry::make('prompt_tokens'),
+            TextEntry::make('completion_tokens'),
+            TextEntry::make('cache_write_tokens')
+                ->label('Cache Write Tokens'),
+            TextEntry::make('cache_read_tokens')
+                ->label('Cache Read Tokens'),
+            TextEntry::make('reasoning_tokens'),
+        ];
+
+        if (static::showsCosts()) {
+            $tokenUsage[] = TextEntry::make('estimated_cost')
+                ->label('Estimated Cost (USD)')
+                ->formatStateUsing(function (mixed $state): string {
+                    if ($state === null) {
+                        return '— (no price configured)';
+                    }
+
+                    return '$' . number_format((float) $state, $state < 0.01 ? 6 : 4);
+                })
+                ->columnSpanFull();
+        }
+
         return $schema
             ->components([
                 Section::make('Request Details')
@@ -71,27 +94,12 @@ class AiUsageResource extends Resource
                     ])
                     ->columns(2),
                 Section::make('Token Usage')
-                    ->schema([
-                        TextEntry::make('prompt_tokens'),
-                        TextEntry::make('completion_tokens'),
-                        TextEntry::make('cache_write_tokens')
-                            ->label('Cache Write Tokens'),
-                        TextEntry::make('cache_read_tokens')
-                            ->label('Cache Read Tokens'),
-                        TextEntry::make('reasoning_tokens'),
-                        TextEntry::make('estimated_cost')
-                            ->label('Estimated Cost (USD)')
-                            ->formatStateUsing(function (mixed $state): string {
-                                if ($state === null) {
-                                    return '— (no price configured)';
-                                }
-                                return '$' . number_format((float) $state, $state < 0.01 ? 6 : 4);
-                            })
-                            ->columnSpanFull(),
-                    ])
+                    ->schema($tokenUsage)
                     ->columns(3)
                     ->footerActions([])
-                    ->description('Prices snapshotted at log time from config. null = price not configured.'),
+                    ->description(static::showsCosts()
+                        ? 'Prices snapshotted at log time from config. null = price not configured.'
+                        : null),
                 Section::make('System Prompt')
                     ->schema([
                         TextEntry::make('prompt_text')
@@ -243,5 +251,10 @@ class AiUsageResource extends Resource
         }
 
         return '-';
+    }
+
+    private static function showsCosts(): bool
+    {
+        return config('ai-usage.show_costs', true);
     }
 }

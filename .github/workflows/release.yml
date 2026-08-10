@@ -1,0 +1,15 @@
+name: Release
+
+on:
+    release:
+        types:
+            - published
+
+permissions:
+    contents: write
+
+jobs:
+    notify-release:
+        uses: ./.github/workflows/release-notify.yml
+        secrets:
+            webhook_secret: ${{ secrets.NOTIFICATIONS_GITHUB_RELEASES_WEBHOOK_SECRET }}

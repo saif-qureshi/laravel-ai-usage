@@ -1,0 +1,65 @@
+name: Release — Notify GitHub release
+
+on:
+  workflow_call:
+    secrets:
+      webhook_secret:
+        description: Shared secret used to sign the GitHub webhook payload.
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Récupère la release après la mise à jour de ses notes par le workflow appelant.
+      - name: Notify backtik
+        env:
+          API_URL: https://notifications.backtik.ch/api/notifications/github/release
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          REPOSITORY_URL: ${{ github.event.repository.html_url }}
+          RELEASE_ACTION: ${{ github.event.action }}
+          TAG_NAME: ${{ github.event.release.tag_name }}
+          WEBHOOK_SECRET: ${{ secrets.webhook_secret }}
+        run: |
+          release=$(gh api "repos/$REPOSITORY/releases/tags/$TAG_NAME")
+
+          payload=$(jq -n \
+            --arg action "$RELEASE_ACTION" \
+            --arg repository "$REPOSITORY" \
+            --arg repository_url "$REPOSITORY_URL" \
+            --argjson release "$release" \
+            '{
+              action: $action,
+              repository: {
+                full_name: $repository,
+                html_url: $repository_url
+              },
+              release: {
+                tag_name: $release.tag_name,
+                name: $release.name,
+                html_url: $release.html_url,
+                body: $release.body,
+                author: {
+                  login: $release.author.login
+                },
+                prerelease: $release.prerelease
+              }
+            }')
+
+          signature="sha256=$(printf '%s' "$payload" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" -hex | sed 's/^.* //')"
+
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --request POST \
+            --header "Content-Type: application/json" \
+            --header "X-GitHub-Event: release" \
+            --header "X-Hub-Signature-256: $signature" \
+            --data "$payload" \
+            "$API_URL"

@@ -15,14 +15,18 @@
     {{-- Compact stats bar --}}
     @php
         $stats = $this->getStatsData();
+        $showCosts = $this->showsCosts();
         $statItems = [
             'Total Calls'     => $stats['totalCalls'],
             'Total Tokens'    => number_format($stats['totalTokens']),
             'Avg Tokens/Call' => number_format($stats['avgTokensPerCall']),
             'Unique Drivers'  => $stats['uniqueDrivers'],
             'Unique Models'   => $stats['uniqueModels'],
-            'Est. Cost (USD)' => $this->formatCost($stats['estimatedCost']),
         ];
+
+        if ($showCosts) {
+            $statItems['Est. Cost (USD)'] = $this->formatCost($stats['estimatedCost']);
+        }
     @endphp
 
     <div style="display:flex;flex-wrap:wrap;gap:1px;border-radius:0.5rem;overflow:hidden;margin-bottom:1.5rem;border:1px solid color-mix(in srgb,currentColor 12%,transparent);background:color-mix(in srgb,currentColor 12%,transparent);">
@@ -79,7 +83,9 @@
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Prompt Tokens</th>
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Completion Tokens</th>
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Total Tokens</th>
-                            <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Est. Cost</th>
+                            @if ($showCosts)
+                                <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Est. Cost</th>
+                            @endif
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Avg Duration</th>
                         </tr>
                     </thead>
@@ -91,12 +97,14 @@
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ number_format($row['total_prompt_tokens']) }}</td>
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ number_format($row['total_completion_tokens']) }}</td>
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;font-weight:700;">{{ number_format($row['total_tokens']) }}</td>
-                                <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ $this->formatCost(isset($row['estimated_cost']) ? (float) $row['estimated_cost'] : null) }}</td>
+                                @if ($showCosts)
+                                    <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ $this->formatCost(isset($row['estimated_cost']) ? (float) $row['estimated_cost'] : null) }}</td>
+                                @endif
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ $row['avg_duration_ms'] ? number_format($row['avg_duration_ms'] / 1000, 2) . ' s' : '—' }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="fi-ta-cell px-3 py-6" style="text-align:center;opacity:0.5;">No data for this period.</td>
+                                <td colspan="{{ $showCosts ? 7 : 6 }}" class="fi-ta-cell px-3 py-6" style="text-align:center;opacity:0.5;">No data for this period.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -112,7 +120,9 @@
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Prompt Tokens</th>
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Completion Tokens</th>
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Total Tokens</th>
-                            <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Est. Cost</th>
+                            @if ($showCosts)
+                                <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Est. Cost</th>
+                            @endif
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Avg Duration</th>
                         </tr>
                     </thead>
@@ -124,12 +134,14 @@
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ number_format($row['total_prompt_tokens']) }}</td>
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ number_format($row['total_completion_tokens']) }}</td>
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;font-weight:700;">{{ number_format($row['total_tokens']) }}</td>
-                                <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ $this->formatCost(isset($row['estimated_cost']) ? (float) $row['estimated_cost'] : null) }}</td>
+                                @if ($showCosts)
+                                    <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ $this->formatCost(isset($row['estimated_cost']) ? (float) $row['estimated_cost'] : null) }}</td>
+                                @endif
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ $row['avg_duration_ms'] ? number_format($row['avg_duration_ms'] / 1000, 2) . ' s' : '—' }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="fi-ta-cell px-3 py-6" style="text-align:center;opacity:0.5;">No data for this period.</td>
+                                <td colspan="{{ $showCosts ? 7 : 6 }}" class="fi-ta-cell px-3 py-6" style="text-align:center;opacity:0.5;">No data for this period.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -145,7 +157,9 @@
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Prompt Tokens</th>
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Completion Tokens</th>
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Total Tokens</th>
-                            <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Est. Cost</th>
+                            @if ($showCosts)
+                                <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Est. Cost</th>
+                            @endif
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Avg Duration</th>
                         </tr>
                     </thead>
@@ -157,12 +171,14 @@
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ number_format($row['total_prompt_tokens']) }}</td>
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ number_format($row['total_completion_tokens']) }}</td>
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;font-weight:700;">{{ number_format($row['total_tokens']) }}</td>
-                                <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ $this->formatCost(isset($row['estimated_cost']) ? (float) $row['estimated_cost'] : null) }}</td>
+                                @if ($showCosts)
+                                    <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ $this->formatCost(isset($row['estimated_cost']) ? (float) $row['estimated_cost'] : null) }}</td>
+                                @endif
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ $row['avg_duration_ms'] ? number_format($row['avg_duration_ms'] / 1000, 2) . ' s' : '—' }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="fi-ta-cell px-3 py-6" style="text-align:center;opacity:0.5;">No data for this period.</td>
+                                <td colspan="{{ $showCosts ? 7 : 6 }}" class="fi-ta-cell px-3 py-6" style="text-align:center;opacity:0.5;">No data for this period.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -178,7 +194,9 @@
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Prompt Tokens</th>
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Completion Tokens</th>
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Total Tokens</th>
-                            <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Est. Cost</th>
+                            @if ($showCosts)
+                                <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Est. Cost</th>
+                            @endif
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Avg Duration</th>
                         </tr>
                     </thead>
@@ -190,12 +208,14 @@
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ number_format($row['total_prompt_tokens']) }}</td>
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ number_format($row['total_completion_tokens']) }}</td>
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;font-weight:700;">{{ number_format($row['total_tokens']) }}</td>
-                                <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ $this->formatCost(isset($row['estimated_cost']) ? (float) $row['estimated_cost'] : null) }}</td>
+                                @if ($showCosts)
+                                    <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ $this->formatCost(isset($row['estimated_cost']) ? (float) $row['estimated_cost'] : null) }}</td>
+                                @endif
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ $row['avg_duration_ms'] ? number_format($row['avg_duration_ms'] / 1000, 2) . ' s' : '—' }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="fi-ta-cell px-3 py-6" style="text-align:center;opacity:0.5;">No data for this period.</td>
+                                <td colspan="{{ $showCosts ? 7 : 6 }}" class="fi-ta-cell px-3 py-6" style="text-align:center;opacity:0.5;">No data for this period.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -205,4 +225,3 @@
         </div>
     </div>
 </x-filament::section>
-

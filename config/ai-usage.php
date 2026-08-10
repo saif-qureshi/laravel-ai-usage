@@ -107,6 +107,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Show Estimated Costs
+    |--------------------------------------------------------------------------
+    |
+    | When false, pricing and estimated-cost information is hidden from the
+    | package's Filament resource and summary widget. Price snapshots continue
+    | to be stored so costs can be shown again later without losing history.
+    |
+    */
+    'show_costs' => true,
+
+    /*
+    |--------------------------------------------------------------------------
     | Token Prices (USD per 1 million tokens)
     |--------------------------------------------------------------------------
     |
