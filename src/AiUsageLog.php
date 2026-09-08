@@ -5,8 +5,10 @@ namespace BacktikCh\LaravelAiUsage;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Str;
+use LogicException;
 
 class AiUsageLog extends Model
 {
@@ -68,6 +70,87 @@ class AiUsageLog extends Model
     public function owner(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    public function account(): BelongsTo
+    {
+        $modelClass = static::accountModelClass();
+
+        if ($modelClass === null) {
+            throw new LogicException('Configure ai-usage.account.model before using the account relationship.');
+        }
+
+        return $this->belongsTo($modelClass, 'account_id');
+    }
+
+    public function accountDisplayName(): string
+    {
+        if ($this->account_id === null) {
+            return '-';
+        }
+
+        $account = static::accountModelClass() ? $this->account : null;
+        $title = $account?->getAttribute(static::accountTitleAttribute());
+
+        return filled($title)
+            ? $title.' (#'.$this->account_id.')'
+            : 'Account #'.$this->account_id;
+    }
+
+    public static function accountLabels(iterable $accountIds): array
+    {
+        $accountIds = collect($accountIds)
+            ->filter(fn (mixed $accountId): bool => is_numeric($accountId))
+            ->map(fn (mixed $accountId): int => (int) $accountId)
+            ->unique()
+            ->values();
+
+        if ($accountIds->isEmpty()) {
+            return [];
+        }
+
+        $modelClass = static::accountModelClass();
+        if ($modelClass === null) {
+            return $accountIds
+                ->mapWithKeys(fn (int $accountId): array => [$accountId => 'Account #'.$accountId])
+                ->all();
+        }
+
+        $model = new $modelClass;
+        $keyName = $model->getKeyName();
+        $titleAttribute = static::accountTitleAttribute();
+        $accounts = $model->newQuery()
+            ->whereIn($keyName, $accountIds)
+            ->get([$keyName, $titleAttribute])
+            ->keyBy($keyName);
+
+        return $accountIds
+            ->mapWithKeys(function (int $accountId) use ($accounts, $titleAttribute): array {
+                $title = $accounts->get($accountId)?->getAttribute($titleAttribute);
+
+                return [
+                    $accountId => filled($title)
+                        ? $title.' (#'.$accountId.')'
+                        : 'Account #'.$accountId,
+                ];
+            })
+            ->all();
+    }
+
+    public static function accountModelClass(): ?string
+    {
+        $modelClass = config('ai-usage.account.model');
+
+        return is_string($modelClass) && is_a($modelClass, Model::class, true)
+            ? $modelClass
+            : null;
+    }
+
+    public static function accountTitleAttribute(): string
+    {
+        $attribute = config('ai-usage.account.title_attribute', 'name');
+
+        return is_string($attribute) && $attribute !== '' ? $attribute : 'name';
     }
 
     public function scopeForAccount(Builder $query, int $accountId): Builder

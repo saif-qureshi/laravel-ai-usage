@@ -85,7 +85,7 @@
                 <table class="fi-ta-table" style="width:100%;">
                     <thead>
                         <tr>
-                            <th class="fi-ta-header-cell px-3 py-2" style="text-align:left;">Account ID</th>
+                            <th class="fi-ta-header-cell px-3 py-2" style="text-align:left;">Account</th>
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Calls</th>
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Prompt Tokens</th>
                             <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Completion Tokens</th>
@@ -99,7 +99,7 @@
                     <tbody>
                         @forelse ($this->getTokensByAccount() as $row)
                             <tr class="fi-ta-row">
-                                <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;font-weight:600;">{{ $row['account_id'] }}</td>
+                                <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;font-weight:600;">{{ $row['account_label'] }}</td>
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ number_format($row['total_calls']) }}</td>
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ number_format($row['total_prompt_tokens']) }}</td>
                                 <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ number_format($row['total_completion_tokens']) }}</td>

@@ -36,7 +36,13 @@ class AiUsageResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with('owner');
+        $query = parent::getEloquentQuery()->with('owner');
+
+        if (AiUsageLog::accountModelClass()) {
+            $query->with('account');
+        }
+
+        return $query;
     }
 
     public static function infolist(Schema $schema): Schema
@@ -74,8 +80,8 @@ class AiUsageResource extends Resource
                         TextEntry::make('agent_class')
                             ->label('Agent'),
                         TextEntry::make('account_id')
-                            ->label('Account ID')
-                            ->placeholder('-'),
+                            ->label('Account')
+                            ->getStateUsing(fn (AiUsageLog $record): string => $record->accountDisplayName()),
                         TextEntry::make('owner_id')
                             ->label('Owner')
                             ->getStateUsing(fn (AiUsageLog $record): string => static::ownerLabel($record)),
@@ -178,7 +184,8 @@ class AiUsageResource extends Resource
                     ->getStateUsing(fn (AiUsageLog $record): string => static::ownerLabel($record))
                     ->toggleable(),
                 TextColumn::make('account_id')
-                    ->label('Account ID')
+                    ->label('Account')
+                    ->getStateUsing(fn (AiUsageLog $record): string => $record->accountDisplayName())
                     ->searchable()
                     ->sortable()
                     ->toggleable(),
@@ -223,11 +230,13 @@ class AiUsageResource extends Resource
                         ->pluck('label', 'label')),
                 SelectFilter::make('account_id')
                     ->label('Account')
-                    ->options(fn () => AiUsageLog::query()
-                        ->select('account_id')
-                        ->distinct()
-                        ->whereNotNull('account_id')
-                        ->pluck('account_id', 'account_id')),
+                    ->options(fn () => AiUsageLog::accountLabels(
+                        AiUsageLog::query()
+                            ->select('account_id')
+                            ->distinct()
+                            ->whereNotNull('account_id')
+                            ->pluck('account_id'),
+                    )),
                 SelectFilter::make('status')
                     ->options(AiUsageStatus::class),
             ]);

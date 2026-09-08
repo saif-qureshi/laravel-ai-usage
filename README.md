@@ -162,6 +162,20 @@ AiUsage::driver('bedrock')
     ->log();
 ```
 
+To show account names instead of raw IDs in Filament, configure the consuming
+application's account model and title attribute:
+
+```php
+'account' => [
+    'model' => App\Models\Account::class,
+    'title_attribute' => 'name',
+],
+```
+
+The stored `account_id` remains unchanged. Filament displays labels such as
+`Acme Construction (#123)` in the table, detail page, filter, and account
+summary.
+
 ### Attach to a model (polymorphic owner)
 
 ```php

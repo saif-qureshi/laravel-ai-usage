@@ -15,6 +15,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Account Display
+    |--------------------------------------------------------------------------
+    |
+    | Optionally provide the consuming application's account model so the
+    | Filament resource can display human-readable account names while the
+    | usage table continues to store stable integer account IDs.
+    |
+    */
+    'account' => [
+        'model' => null,
+        'title_attribute' => 'name',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Queue Logs
     |--------------------------------------------------------------------------
     |

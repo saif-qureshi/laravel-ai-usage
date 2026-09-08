@@ -120,7 +120,17 @@ class AiUsageSummaryWidget extends Widget
             $query->selectRaw("SUM({$this->costExpr()}) / 1000000 as estimated_cost");
         }
 
-        return $query->get()->toArray();
+        $rows = $query->get();
+        $accountLabels = AiUsageLog::accountLabels($rows->pluck('account_id'));
+
+        return $rows
+            ->map(function (AiUsageLog $row) use ($accountLabels): array {
+                $data = $row->toArray();
+                $data['account_label'] = $accountLabels[$row->account_id] ?? 'Account #'.$row->account_id;
+
+                return $data;
+            })
+            ->all();
     }
 
     public function getTokensByModel(): array
