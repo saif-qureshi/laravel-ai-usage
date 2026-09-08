@@ -37,6 +37,13 @@ class PendingUsageLog
         return $this;
     }
 
+    public function accountId(int $accountId): static
+    {
+        $this->data['account_id'] = $accountId;
+
+        return $this;
+    }
+
     public function tokens(int $prompt, int $completion, int $cacheWrite = 0, int $cacheRead = 0, int $reasoning = 0): static
     {
         $this->data['prompt_tokens'] = $prompt;

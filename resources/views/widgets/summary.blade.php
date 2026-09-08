@@ -39,8 +39,15 @@
     </div>
 
     {{-- Tabbed tables --}}
-    <div x-data="{ activeTab: 'driver' }">
+    <div x-data="{ activeTab: 'account' }">
         <x-filament::tabs label="Breakdown">
+            <x-filament::tabs.item
+                alpine-active="activeTab === 'account'"
+                x-on:click="activeTab = 'account'"
+                icon="heroicon-o-building-office-2"
+            >
+                By Account
+            </x-filament::tabs.item>
             <x-filament::tabs.item
                 alpine-active="activeTab === 'driver'"
                 x-on:click="activeTab = 'driver'"
@@ -73,8 +80,46 @@
 
         <div style="margin-top:1rem;overflow-x:auto;">
 
+            {{-- By Account --}}
+            <div x-show="activeTab === 'account'">
+                <table class="fi-ta-table" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th class="fi-ta-header-cell px-3 py-2" style="text-align:left;">Account ID</th>
+                            <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Calls</th>
+                            <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Prompt Tokens</th>
+                            <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Completion Tokens</th>
+                            <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Total Tokens</th>
+                            @if ($showCosts)
+                                <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Est. Cost</th>
+                            @endif
+                            <th class="fi-ta-header-cell px-3 py-2" style="text-align:right;">Avg Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($this->getTokensByAccount() as $row)
+                            <tr class="fi-ta-row">
+                                <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;font-weight:600;">{{ $row['account_id'] }}</td>
+                                <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ number_format($row['total_calls']) }}</td>
+                                <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ number_format($row['total_prompt_tokens']) }}</td>
+                                <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ number_format($row['total_completion_tokens']) }}</td>
+                                <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;font-weight:700;">{{ number_format($row['total_tokens']) }}</td>
+                                @if ($showCosts)
+                                    <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ $this->formatCost(isset($row['estimated_cost']) ? (float) $row['estimated_cost'] : null) }}</td>
+                                @endif
+                                <td class="fi-ta-cell px-3" style="padding-top:0.75rem;padding-bottom:0.75rem;text-align:right;">{{ $row['avg_duration_ms'] ? number_format($row['avg_duration_ms'] / 1000, 2) . ' s' : '—' }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="{{ $showCosts ? 7 : 6 }}" class="fi-ta-cell px-3 py-6" style="text-align:center;opacity:0.5;">No account data for this period.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
             {{-- By Driver --}}
-            <div x-show="activeTab === 'driver'">
+            <div x-show="activeTab === 'driver'" x-cloak>
                 <table class="fi-ta-table" style="width:100%;">
                     <thead>
                         <tr>

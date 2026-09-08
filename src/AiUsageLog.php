@@ -2,6 +2,7 @@
 
 namespace BacktikCh\LaravelAiUsage;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -14,6 +15,7 @@ class AiUsageLog extends Model
         'driver',
         'model',
         'agent_class',
+        'account_id',
         'prompt_tokens',
         'completion_tokens',
         'cache_write_tokens',
@@ -39,6 +41,7 @@ class AiUsageLog extends Model
     {
         return [
             'status' => AiUsageStatus::class,
+            'account_id' => 'integer',
             'request_meta' => 'array',
             'response_meta' => 'array',
             'prompt_tokens' => 'int',
@@ -65,6 +68,11 @@ class AiUsageLog extends Model
     public function owner(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    public function scopeForAccount(Builder $query, int $accountId): Builder
+    {
+        return $query->where('account_id', $accountId);
     }
 
     protected function estimatedCost(): Attribute

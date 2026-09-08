@@ -7,7 +7,8 @@ Track and log AI usage (tokens, cost, duration) for any Laravel application, wit
 ## Requirements
 
 - PHP 8.3+
-- Laravel 12.x
+- Laravel 12.x or 13.x
+- Filament 5.x (optional, for the admin resource and widgets)
 
 ## Installation
 
@@ -137,6 +138,27 @@ AiUsage::driver('openai')
     ->status('completed')
     ->requestMeta(['temperature' => 0.7]) // optional arbitrary metadata
     ->responseMeta(['finish_reason' => 'stop'])
+    ->log();
+```
+
+### Associate usage with an account
+
+Use `accountId()` when the consuming application needs account-level usage
+reporting. The account identifier is stored directly and indexed for filtering
+and aggregation:
+
+```php
+AiUsage::driver('bedrock')
+    ->model('anthropic.claude-sonnet')
+    ->accountId($user->account_id)
+    ->owner($user)
+    ->tokens(prompt: 512, completion: 256)
+    ->requestMeta([
+        'chat_id' => $chat->id,
+        'chat_message_id' => $message->id,
+        'request_id' => $usage['request_id'],
+    ])
+    ->status('completed')
     ->log();
 ```
 

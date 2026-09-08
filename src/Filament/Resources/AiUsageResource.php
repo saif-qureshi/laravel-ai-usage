@@ -2,15 +2,14 @@
 
 namespace BacktikCh\LaravelAiUsage\Filament\Resources;
 
+use BackedEnum;
 use BacktikCh\LaravelAiUsage\AiUsageLog;
 use BacktikCh\LaravelAiUsage\AiUsageStatus;
 use BacktikCh\LaravelAiUsage\Filament\Resources\AiUsageResource\Pages\ListAiUsage;
 use BacktikCh\LaravelAiUsage\Filament\Resources\AiUsageResource\Pages\ViewAiUsage;
-use BackedEnum;
-use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
-use Filament\Schemas\Components\Section;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -60,7 +59,7 @@ class AiUsageResource extends Resource
                         return '— (no price configured)';
                     }
 
-                    return '$' . number_format((float) $state, $state < 0.01 ? 6 : 4);
+                    return '$'.number_format((float) $state, $state < 0.01 ? 6 : 4);
                 })
                 ->columnSpanFull();
         }
@@ -74,6 +73,9 @@ class AiUsageResource extends Resource
                         TextEntry::make('model'),
                         TextEntry::make('agent_class')
                             ->label('Agent'),
+                        TextEntry::make('account_id')
+                            ->label('Account ID')
+                            ->placeholder('-'),
                         TextEntry::make('owner_id')
                             ->label('Owner')
                             ->getStateUsing(fn (AiUsageLog $record): string => static::ownerLabel($record)),
@@ -87,7 +89,7 @@ class AiUsageResource extends Resource
                             }),
                         TextEntry::make('duration_ms')
                             ->label('Duration')
-                            ->formatStateUsing(fn (?int $state) => $state ? number_format($state / 1000, 2) . ' s' : '-'),
+                            ->formatStateUsing(fn (?int $state) => $state ? number_format($state / 1000, 2).' s' : '-'),
                         TextEntry::make('created_at')
                             ->label('Created at')
                             ->dateTime(),
@@ -175,6 +177,11 @@ class AiUsageResource extends Resource
                     ->label('Owner')
                     ->getStateUsing(fn (AiUsageLog $record): string => static::ownerLabel($record))
                     ->toggleable(),
+                TextColumn::make('account_id')
+                    ->label('Account ID')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('prompt_tokens')
                     ->label('Prompt Tok.')
                     ->sortable(),
@@ -183,7 +190,7 @@ class AiUsageResource extends Resource
                     ->sortable(),
                 TextColumn::make('duration_ms')
                     ->label('Duration')
-                    ->formatStateUsing(fn (?int $state) => $state ? number_format($state / 1000, 2) . ' s' : '-')
+                    ->formatStateUsing(fn (?int $state) => $state ? number_format($state / 1000, 2).' s' : '-')
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('status')
@@ -214,6 +221,13 @@ class AiUsageResource extends Resource
                         ->distinct()
                         ->whereNotNull('label')
                         ->pluck('label', 'label')),
+                SelectFilter::make('account_id')
+                    ->label('Account')
+                    ->options(fn () => AiUsageLog::query()
+                        ->select('account_id')
+                        ->distinct()
+                        ->whereNotNull('account_id')
+                        ->pluck('account_id', 'account_id')),
                 SelectFilter::make('status')
                     ->options(AiUsageStatus::class),
             ]);
@@ -243,11 +257,11 @@ class AiUsageResource extends Resource
                 return (string) ($name ?: $email);
             }
 
-            return class_basename($owner::class) . ' #' . $owner->getKey();
+            return class_basename($owner::class).' #'.$owner->getKey();
         }
 
         if ($record->owner_type && $record->owner_id !== null) {
-            return class_basename($record->owner_type) . ' #' . $record->owner_id;
+            return class_basename($record->owner_type).' #'.$record->owner_id;
         }
 
         return '-';

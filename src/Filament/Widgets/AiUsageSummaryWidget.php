@@ -16,14 +16,14 @@ class AiUsageSummaryWidget extends Widget
     public function getPeriods(): array
     {
         return [
-            'today'     => 'Today',
+            'today' => 'Today',
             'yesterday' => 'Yesterday',
-            '7d'        => 'Last 7 days',
-            '30d'       => 'Last 30 days',
-            '3m'        => 'Last 3 months',
-            '6m'        => 'Last 6 months',
-            '1y'        => 'Last year',
-            'all'       => 'All time',
+            '7d' => 'Last 7 days',
+            '30d' => 'Last 30 days',
+            '3m' => 'Last 3 months',
+            '6m' => 'Last 6 months',
+            '1y' => 'Last year',
+            'all' => 'All time',
         ];
     }
 
@@ -40,10 +40,10 @@ class AiUsageSummaryWidget extends Widget
     private function costExpr(): string
     {
         return 'COALESCE(prompt_tokens * prompt_cost_per_million, 0)'
-            . ' + COALESCE(completion_tokens * completion_cost_per_million, 0)'
-            . ' + COALESCE(cache_write_tokens * cache_write_cost_per_million, 0)'
-            . ' + COALESCE(cache_read_tokens * cache_read_cost_per_million, 0)'
-            . ' + COALESCE(reasoning_tokens * reasoning_cost_per_million, 0)';
+            .' + COALESCE(completion_tokens * completion_cost_per_million, 0)'
+            .' + COALESCE(cache_write_tokens * cache_write_cost_per_million, 0)'
+            .' + COALESCE(cache_read_tokens * cache_read_cost_per_million, 0)'
+            .' + COALESCE(reasoning_tokens * reasoning_cost_per_million, 0)';
     }
 
     public function formatCost(?float $cost): string
@@ -52,7 +52,7 @@ class AiUsageSummaryWidget extends Widget
             return '—';
         }
 
-        return '$' . number_format($cost, $cost < 0.01 ? 6 : 4);
+        return '$'.number_format($cost, $cost < 0.01 ? 6 : 4);
     }
 
     public function getStatsData(): array
@@ -63,10 +63,10 @@ class AiUsageSummaryWidget extends Widget
         $totalTokens = (clone $query)->get()->sum(fn ($log) => $log->totalTokens());
 
         $stats = [
-            'totalCalls'      => $totalCalls,
-            'totalTokens'     => $totalTokens,
-            'uniqueDrivers'   => (clone $query)->whereNotNull('driver')->distinct('driver')->count('driver'),
-            'uniqueModels'    => (clone $query)->whereNotNull('model')->distinct('model')->count('model'),
+            'totalCalls' => $totalCalls,
+            'totalTokens' => $totalTokens,
+            'uniqueDrivers' => (clone $query)->whereNotNull('driver')->distinct('driver')->count('driver'),
+            'uniqueModels' => (clone $query)->whereNotNull('model')->distinct('model')->count('model'),
             'avgTokensPerCall' => $totalCalls > 0 ? (int) round($totalTokens / $totalCalls) : 0,
         ];
 
@@ -94,6 +94,26 @@ class AiUsageSummaryWidget extends Widget
             ->selectRaw('AVG(duration_ms) as avg_duration_ms')
             ->whereNotNull('driver')
             ->groupBy('driver')
+            ->orderByDesc('total_tokens');
+
+        if ($this->showsCosts()) {
+            $query->selectRaw("SUM({$this->costExpr()}) / 1000000 as estimated_cost");
+        }
+
+        return $query->get()->toArray();
+    }
+
+    public function getTokensByAccount(): array
+    {
+        $query = $this->applyPeriodFilter(AiUsageLog::query())
+            ->select('account_id')
+            ->selectRaw('SUM(prompt_tokens) as total_prompt_tokens')
+            ->selectRaw('SUM(completion_tokens) as total_completion_tokens')
+            ->selectRaw('SUM(prompt_tokens + completion_tokens + COALESCE(cache_write_tokens,0) + COALESCE(cache_read_tokens,0) + COALESCE(reasoning_tokens,0)) as total_tokens')
+            ->selectRaw('COUNT(*) as total_calls')
+            ->selectRaw('AVG(duration_ms) as avg_duration_ms')
+            ->whereNotNull('account_id')
+            ->groupBy('account_id')
             ->orderByDesc('total_tokens');
 
         if ($this->showsCosts()) {
@@ -172,14 +192,14 @@ class AiUsageSummaryWidget extends Widget
     protected function applyPeriodFilter($query)
     {
         return match ($this->period) {
-            'today'     => $query->whereDate('created_at', today()),
+            'today' => $query->whereDate('created_at', today()),
             'yesterday' => $query->whereDate('created_at', today()->subDay()),
-            '7d'        => $query->where('created_at', '>=', now()->subDays(7)),
-            '30d'       => $query->where('created_at', '>=', now()->subDays(30)),
-            '3m'        => $query->where('created_at', '>=', now()->subMonths(3)),
-            '6m'        => $query->where('created_at', '>=', now()->subMonths(6)),
-            '1y'        => $query->where('created_at', '>=', now()->subYear()),
-            default     => $query,
+            '7d' => $query->where('created_at', '>=', now()->subDays(7)),
+            '30d' => $query->where('created_at', '>=', now()->subDays(30)),
+            '3m' => $query->where('created_at', '>=', now()->subMonths(3)),
+            '6m' => $query->where('created_at', '>=', now()->subMonths(6)),
+            '1y' => $query->where('created_at', '>=', now()->subYear()),
+            default => $query,
         };
     }
 

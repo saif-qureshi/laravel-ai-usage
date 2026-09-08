@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Facade;
 
 /**
  * @method static PendingUsageLog driver(string $driver)
+ * @method static PendingUsageLog accountId(int $accountId)
  * @method static PendingUsageLog model(string $model)
  * @method static PendingUsageLog label(string $label)
  * @method static PendingUsageLog agentClass(string $fqcn)
@@ -21,7 +22,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static PendingUsageLog costPrices(array $prices)
  * @method static \BacktikCh\LaravelAiUsage\AiUsageLog log(array $data = [])
  *
- * @see \BacktikCh\LaravelAiUsage\PendingUsageLog
+ * @see PendingUsageLog
  */
 class AiUsage extends Facade
 {
